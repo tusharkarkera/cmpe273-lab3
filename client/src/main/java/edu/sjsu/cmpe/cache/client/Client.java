@@ -1,19 +1,26 @@
 package edu.sjsu.cmpe.cache.client;
 
+import java.util.ArrayList;
+
 public class Client {
 
     public static void main(String[] args) throws Exception {
         System.out.println("Starting Cache Client...");
-        CacheServiceInterface cache = new DistributedCacheService(
-                "http://localhost:3000");
 
-        cache.put(1, "foo");
-        System.out.println("put(1 => foo)");
+        ArrayList<String> cacheMachines = new ArrayList<String>();
+        cacheMachines.add("http://localhost:3000");
+        cacheMachines.add("http://localhost:3001");
+        cacheMachines.add("http://localhost:3002");
 
-        String value = cache.get(1);
-        System.out.println("get(1) => " + value);
+        ConsistentHash<String> consistentHash = new ConsistentHash<String>(new HashFunction(),3,cacheMachines);
 
-        System.out.println("Existing Cache Client...");
+        for (int i=1, j=97; i<=10 && j<=106;i++,j++) {
+            CacheServiceInterface cache = new DistributedCacheService(consistentHash.get(i));
+            cache.put(i,String.valueOf((char)j));
+            System.out.println(i+" => "+String.valueOf((char)j));
+        }
+
+        System.out.println("Exiting Cache Client...");
+
     }
-
 }
